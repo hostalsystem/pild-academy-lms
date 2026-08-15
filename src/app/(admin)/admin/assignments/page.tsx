@@ -145,10 +145,10 @@ const totalSubmissions = assignments.reduce(
               </tr>
             </thead>
             <tbody>
-              {assignments.map((assignment) => {
-                const pendingCount = assignment.submissions.filter(
-                  (s) => s.status !== "GRADED"
-                ).length;
+              {assignments.map((assignment: any) => {
+  const pendingCount = assignment.submissions.filter(
+    (s: any) => s.status !== "GRADED"
+  ).length;
 
                 return (
                   <tr
