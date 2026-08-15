@@ -49,18 +49,26 @@ export default async function AdminAssignmentsPage() {
   const courses = await getCourses();
 
   const total = assignments.length;
-  const pendingGrading = assignments.reduce(
-    (sum: number, a) =>
-      sum +
-      a.submissions.filter((s) => s.status !== "GRADED").length,
-    0
-  );
-  const graded = assignments.reduce(
-    (sum, a) => sum + a.submissions.filter((s) => s.status === "GRADED").length,
-    0
-  );
-  const totalSubmissions = assignments.reduce((sum, a) => sum + a._count.submissions, 0);
 
+const pendingGrading = assignments.reduce(
+  (sum: number, a: (typeof assignments)[number]) =>
+    sum +
+    a.submissions.filter((s) => s.status !== "GRADED").length,
+  0
+);
+
+const graded = assignments.reduce(
+  (sum: number, a: (typeof assignments)[number]) =>
+    sum +
+    a.submissions.filter((s) => s.status === "GRADED").length,
+  0
+);
+
+const totalSubmissions = assignments.reduce(
+  (sum: number, a: (typeof assignments)[number]) =>
+    sum + a._count.submissions,
+  0
+);
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
