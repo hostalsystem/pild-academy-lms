@@ -154,8 +154,11 @@ export function ReportsClient() {
               <Users className="h-5 w-5 text-blue-500" />
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {Object.values(data.studentsByMonth || {}).reduce((a: any, b: any) => a + b, 0)}
-            </p>
+  {Object.values(data.studentsByMonth || {}).reduce<number>(
+    (total, count) => total + Number(count),
+    0
+  )}
+</p>
           </CardContent>
         </Card>
         <Card>
@@ -165,11 +168,12 @@ export function ReportsClient() {
               <BookOpen className="h-5 w-5 text-purple-500" />
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {Object.values(data.enrollmentsByMonth || {}).reduce(
-                (a: any, b: any) => a + b.total,
-                0
-              )}
-            </p>
+  {Object.values(data.enrollmentsByMonth || {}).reduce<number>(
+    (total, entry) =>
+      total + Number((entry as { total?: unknown })?.total ?? 0),
+    0
+  )}
+</p>
           </CardContent>
         </Card>
         <Card>

@@ -1,326 +1,705 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Pencil, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import {
+  Upload,
+  Video,
+  FileText,
+  Loader2,
+  Save,
+  Trash2,
+  Plus,
+  CheckCircle,
+  BookOpen,
+} from "lucide-react";
 
-interface Course {
+interface Lesson {
   id: string;
   title: string;
-  slug: string;
   description: string | null;
-  thumbnail: string | null;
-  banner: string | null;
-  duration: string | null;
-  fee: number;
-  objectives: string[];
-  requirements: string[];
-  outcomes: string[];
-  syllabus: any;
-  featured: boolean;
-  published: boolean;
+  videoUrl: string | null;
+  pdfUrl: string | null;
+  codeFiles: string[];
+  duration: number;
+  order: number;
+  isPreview: boolean;
 }
 
-interface CourseFormProps {
-  existingCourse?: Course;
+interface CourseLessonManagerProps {
+  courseId: string;
+  courseTitle: string;
+  initialLessons: Lesson[];
 }
 
-function generateSlug(title: string) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-export function CourseForm({ existingCourse }: CourseFormProps) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const [title, setTitle] = useState(existingCourse?.title || "");
-  const [slug, setSlug] = useState(existingCourse?.slug || "");
-  const [description, setDescription] = useState(existingCourse?.description || "");
-  const [thumbnail, setThumbnail] = useState(existingCourse?.thumbnail || "");
-  const [banner, setBanner] = useState(existingCourse?.banner || "");
-  const [duration, setDuration] = useState(existingCourse?.duration || "");
-  const [fee, setFee] = useState(existingCourse?.fee?.toString() || "0");
-  const [objectives, setObjectives] = useState(existingCourse?.objectives?.join("\n") || "");
-  const [requirements, setRequirements] = useState(existingCourse?.requirements?.join("\n") || "");
-  const [outcomes, setOutcomes] = useState(existingCourse?.outcomes?.join("\n") || "");
-  const [syllabus, setSyllabus] = useState(
-    existingCourse?.syllabus ? JSON.stringify(existingCourse.syllabus, null, 2) : ""
+export function CourseLessonManager({
+  courseId,
+  courseTitle,
+  initialLessons,
+}: CourseLessonManagerProps) {
+  const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(
+    initialLessons[0]?.id || ""
   );
-  const [featured, setFeatured] = useState(existingCourse?.featured || false);
-  const [published, setPublished] = useState(existingCourse?.published || false);
 
-  useEffect(() => {
-    if (!existingCourse && title && !slug) {
-      setSlug(generateSlug(title));
-    }
-  }, [title, slug, existingCourse]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [duration, setDuration] = useState("0");
+  const [order, setOrder] = useState("1");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [pdfUrl, setPdfUrl] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [message, setMessage] = useState("");
 
-    const payload = {
-      title,
-      slug,
-      description: description || null,
-      thumbnail: thumbnail || null,
-      banner: banner || null,
-      duration: duration || null,
-      fee,
-      objectives: objectives.split("\n").filter((s) => s.trim()),
-      requirements: requirements.split("\n").filter((s) => s.trim()),
-      outcomes: outcomes.split("\n").filter((s) => s.trim()),
-      syllabus: syllabus ? JSON.parse(syllabus) : null,
-      featured,
-      published,
-    };
+  const selectedLesson = lessons.find(
+    (lesson) => lesson.id === selectedLessonId
+  );
+
+  const clearForm = () => {
+    setSelectedLessonId("");
+    setTitle("");
+    setDescription("");
+    setDuration("0");
+    setOrder(String(lessons.length + 1));
+    setVideoUrl("");
+    setPdfUrl("");
+    setMessage("");
+  };
+
+  const loadLesson = (lesson: Lesson) => {
+    setSelectedLessonId(lesson.id);
+    setTitle(lesson.title);
+    setDescription(lesson.description || "");
+    setDuration(String(lesson.duration || 0));
+    setOrder(String(lesson.order || 0));
+    setVideoUrl(lesson.videoUrl || "");
+    setPdfUrl(lesson.pdfUrl || "");
+    setMessage("");
+  };
+
+  const uploadFile = async (
+  file: File,
+  type: "video" | "pdf"
+) => {
+  if (!file) return;
+
+  if (type === "video") {
+    setUploadingVideo(true);
+  } else {
+    setUploadingPdf(true);
+  }
+
+  setMessage("");
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    let data: any = {};
 
     try {
-      const url = existingCourse
-        ? `/api/admin/courses/${existingCourse.id}`
-        : "/api/admin/courses";
-      const method = existingCourse ? "PUT" : "POST";
+      data = await response.json();
+    } catch {
+      throw new Error(
+        `Server returned status ${response.status}.`
+      );
+    }
 
-      const res = await fetch(url, {
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+          `Upload failed with status ${response.status}.`
+      );
+    }
+
+    if (!data.url) {
+      throw new Error(
+        "Upload succeeded but no file URL was returned."
+      );
+    }
+
+    if (type === "video") {
+      setVideoUrl(data.url);
+    } else {
+      setPdfUrl(data.url);
+    }
+
+    setMessage(
+      `${type === "video" ? "Video" : "PDF"} uploaded successfully.`
+    );
+  } catch (error) {
+    console.error("Upload error:", error);
+
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : "File upload failed."
+    );
+  } finally {
+    if (type === "video") {
+      setUploadingVideo(false);
+    } else {
+      setUploadingPdf(false);
+    }
+  }
+};
+
+  const handleVideoUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      setMessage("Please select a valid video file.");
+      return;
+    }
+
+    uploadFile(file, "video");
+  };
+
+  const handlePdfUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setMessage("Please select a PDF file.");
+      return;
+    }
+
+    uploadFile(file, "pdf");
+  };
+
+  const saveLesson = async () => {
+    if (!title.trim()) {
+      setMessage("Lecture title is required.");
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const payload = {
+        title: title.trim(),
+        description: description.trim() || null,
+        videoUrl: videoUrl || null,
+        pdfUrl: pdfUrl || null,
+        duration: Number(duration) || 0,
+        order: Number(order) || 0,
+      };
+
+      const url = selectedLessonId
+        ? `/api/admin/courses/${courseId}/lessons/${selectedLessonId}`
+        : `/api/admin/courses/${courseId}/lessons`;
+
+      const method = selectedLessonId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        setOpen(false);
-        router.refresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to save course");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save lecture.");
       }
-    } catch (err) {
-      alert("Something went wrong");
+
+      if (selectedLessonId) {
+        setLessons((current) =>
+          current.map((lesson) =>
+            lesson.id === selectedLessonId ? data.lesson : lesson
+          )
+        );
+      } else {
+        setLessons((current) =>
+          [...current, data.lesson].sort((a, b) => a.order - b.order)
+        );
+
+        setSelectedLessonId(data.lesson.id);
+      }
+
+      setMessage("Lecture saved successfully.");
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to save lecture."
+      );
     } finally {
-      setLoading(false);
+      setSaving(false);
+    }
+  };
+
+  const deleteLesson = async () => {
+    if (!selectedLessonId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this lecture?"
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/courses/${courseId}/lessons/${selectedLessonId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete lecture.");
+      }
+
+      setLessons((current) =>
+        current.filter((lesson) => lesson.id !== selectedLessonId)
+      );
+
+      clearForm();
+
+      setMessage("Lecture deleted successfully.");
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete lecture."
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {existingCourse ? (
-          <Button size="sm" variant="outline" className="gap-1.5">
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Button>
-        ) : (
-          <Button className="bg-pild-primary gap-2">
-            <Plus className="h-4 w-4" />
-            Add Course
-          </Button>
-        )}
-      </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
-            {existingCourse ? "Edit Course" : "Create New Course"}
-          </SheetTitle>
-        </SheetHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
-          {/* Basic Info */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Basic Information
-            </h4>
-            <div className="space-y-1.5">
-              <Label>Course Title *</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Full Stack Web Development"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Slug *</Label>
-              <Input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="full-stack-web-development"
-                required
-              />
-              <p className="text-xs text-gray-400">URL-friendly identifier</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of the course"
-                rows={3}
-              />
-            </div>
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-100 p-3 rounded-xl">
+            <BookOpen className="h-6 w-6 text-blue-600" />
           </div>
 
-          {/* Media */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Media
-            </h4>
-            <div className="space-y-1.5">
-              <Label>Thumbnail URL</Label>
-              <Input
-                value={thumbnail}
-                onChange={(e) => setThumbnail(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Banner URL</Label>
-              <Input
-                value={banner}
-                onChange={(e) => setBanner(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Manage Lectures
+            </h1>
 
-          {/* Pricing & Duration */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Pricing & Duration
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Fee (PKR)</Label>
-                <Input
-                  type="number"
-                  value={fee}
-                  onChange={(e) => setFee(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                />
+            <p className="text-gray-500 mt-1">
+              {courseTitle}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Lecture List */}
+
+        <div className="lg:col-span-1">
+          <div className="bg-white border rounded-xl overflow-hidden">
+
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  Course Lectures
+                </h2>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  {lessons.length} lecture
+                  {lessons.length === 1 ? "" : "s"}
+                </p>
               </div>
-              <div className="space-y-1.5">
-                <Label>Duration</Label>
-                <Input
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g. 12 weeks"
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Content */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Course Content
-            </h4>
-            <div className="space-y-1.5">
-              <Label>Objectives (one per line)</Label>
-              <textarea
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={objectives}
-                onChange={(e) => setObjectives(e.target.value)}
-                placeholder="Learn React&#10;Build real projects"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Requirements (one per line)</Label>
-              <textarea
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={requirements}
-                onChange={(e) => setRequirements(e.target.value)}
-                placeholder="Basic HTML knowledge&#10;Laptop with internet"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Outcomes (one per line)</Label>
-              <textarea
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={outcomes}
-                onChange={(e) => setOutcomes(e.target.value)}
-                placeholder="Build full-stack apps&#10;Deploy to production"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Syllabus (JSON)</Label>
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono text-xs"
-                value={syllabus}
-                onChange={(e) => setSyllabus(e.target.value)}
-                placeholder={`[{"title":"Module 1","lessons":["Intro","Setup"]}]`}
-                rows={4}
-              />
-              <p className="text-xs text-gray-400">Optional. Leave empty if not needed.</p>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Status
-            </h4>
-            <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => setFeatured(!featured)}
-                className={cn(
-                  "flex-1 py-3 rounded-lg border text-sm font-medium transition-all",
-                  featured
-                    ? "bg-pild-secondary/10 border-pild-secondary text-pild-secondary"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                )}
+                onClick={clearForm}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
               >
-                {featured ? "★ Featured" : "☆ Mark Featured"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPublished(!published)}
-                className={cn(
-                  "flex-1 py-3 rounded-lg border text-sm font-medium transition-all",
-                  published
-                    ? "bg-green-50 border-green-300 text-green-700"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                )}
-              >
-                {published ? "● Published" : "○ Draft"}
-              </button>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-pild-primary gap-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : existingCourse ? (
-              <>
-                <Pencil className="h-4 w-4" />
-                Update Course
-              </>
-            ) : (
-              <>
                 <Plus className="h-4 w-4" />
-                Create Course
-              </>
-            )}
-          </Button>
-        </form>
-      </SheetContent>
-    </Sheet>
+                New
+              </button>
+            </div>
+
+            <div className="divide-y">
+              {lessons.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+
+                  <p className="text-sm">
+                    No lectures yet.
+                  </p>
+
+                  <p className="text-xs mt-1">
+                    Create your first lecture.
+                  </p>
+                </div>
+              ) : (
+                lessons
+                  .sort((a, b) => a.order - b.order)
+                  .map((lesson) => (
+                    <button
+                      key={lesson.id}
+                      type="button"
+                      onClick={() => loadLesson(lesson)}
+                      className={`w-full text-left p-4 transition ${
+                        selectedLessonId === lesson.id
+                          ? "bg-blue-50 border-l-4 border-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-600">
+                          {lesson.order}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-900 truncate">
+                            {lesson.title}
+                          </p>
+
+                          <div className="flex gap-2 mt-2 text-xs">
+                            {lesson.videoUrl && (
+                              <span className="inline-flex items-center gap-1 text-purple-600">
+                                <Video className="h-3 w-3" />
+                                Video
+                              </span>
+                            )}
+
+                            {lesson.pdfUrl && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <FileText className="h-3 w-3" />
+                                PDF
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Lecture Editor */}
+
+        <div className="lg:col-span-2">
+          <div className="bg-white border rounded-xl">
+
+            <div className="p-6 border-b">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {selectedLessonId
+                  ? "Edit Lecture"
+                  : "Create New Lecture"}
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Upload the lecture recording and class notes.
+              </p>
+            </div>
+
+            <div className="p-6 space-y-6">
+
+              {/* Basic Information */}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Lecture Title
+                  </label>
+
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Lecture 1: Introduction to HTML"
+                    className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Lecture Order
+                  </label>
+
+                  <input
+                    type="number"
+                    min="1"
+                    value={order}
+                    onChange={(e) => setOrder(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Description
+                </label>
+
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  placeholder="Explain what students will learn in this lecture..."
+                  className="w-full border rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="w-full md:w-48">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Duration
+                </label>
+
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2.5 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                  <span className="absolute right-3 top-2.5 text-sm text-gray-400">
+                    minutes
+                  </span>
+                </div>
+              </div>
+
+              {/* Video */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Lecture Video
+                </label>
+
+                <div className="border-2 border-dashed rounded-xl p-5">
+
+                  {videoUrl ? (
+                    <div className="space-y-3">
+
+                      <div className="flex items-center gap-3 bg-purple-50 border border-purple-100 rounded-lg p-3">
+                        <Video className="h-5 w-5 text-purple-600" />
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800">
+                            Video uploaded
+                          </p>
+
+                          <p className="text-xs text-gray-500 truncate">
+                            {videoUrl}
+                          </p>
+                        </div>
+
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      </div>
+
+                      <video
+                        src={videoUrl}
+                        controls
+                        className="w-full max-h-72 rounded-lg bg-black"
+                      />
+
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <Video className="h-10 w-10 mx-auto text-gray-300 mb-3" />
+
+                      <p className="text-sm text-gray-600 mb-3">
+                        Upload the recorded class video
+                      </p>
+                    </div>
+                  )}
+
+                  <label className="mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg cursor-pointer hover:bg-gray-800 text-sm font-medium">
+
+                    {uploadingVideo ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading video...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        {videoUrl ? "Replace Video" : "Upload Video"}
+                      </>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={handleVideoUpload}
+                      disabled={uploadingVideo}
+                    />
+
+                  </label>
+
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    MP4 is recommended for best browser compatibility.
+                  </p>
+
+                </div>
+              </div>
+
+              {/* PDF */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Lecture PDF / Notes
+                </label>
+
+                <div className="border-2 border-dashed rounded-xl p-5">
+
+                  {pdfUrl && (
+                    <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-lg p-3 mb-3">
+                      <FileText className="h-5 w-5 text-red-600" />
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800">
+                          PDF uploaded
+                        </p>
+
+                        <p className="text-xs text-gray-500 truncate">
+                          {pdfUrl}
+                        </p>
+                      </div>
+
+                      <a
+                        href={pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        View
+                      </a>
+
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                  )}
+
+                  <label className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg cursor-pointer hover:bg-red-700 text-sm font-medium">
+
+                    {uploadingPdf ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading PDF...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        {pdfUrl ? "Replace PDF" : "Upload PDF"}
+                      </>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      onChange={handlePdfUpload}
+                      disabled={uploadingPdf}
+                    />
+
+                  </label>
+
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Upload class notes, slides, assignments, or lecture PDFs.
+                  </p>
+
+                </div>
+              </div>
+
+              {/* Message */}
+
+              {message && (
+                <div className="rounded-lg bg-gray-50 border p-3 text-sm text-gray-700">
+                  {message}
+                </div>
+              )}
+
+              {/* Actions */}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t">
+
+                <div>
+                  {selectedLessonId && (
+                    <button
+                      type="button"
+                      onClick={deleteLesson}
+                      disabled={deleting}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium"
+                    >
+                      {deleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+
+                      Delete Lecture
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+
+                  <button
+                    type="button"
+                    onClick={clearForm}
+                    className="px-4 py-2.5 rounded-lg border text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={saveLesson}
+                    disabled={saving || uploadingVideo || uploadingPdf}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+
+                    Save Lecture
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
 }

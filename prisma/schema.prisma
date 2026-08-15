@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -48,7 +47,6 @@ model Course {
   quizzes     Quiz[]
   zoomClasses ZoomClass[]
   certificates  Certificate[]
-
   syllabus     Json?
   outcomes     String[]
   featured     Boolean  @default(false)
@@ -301,15 +299,26 @@ model Certificate {
 
 model Notification {
   id        String   @id @default(cuid())
-  userId    String?  // null = broadcast to all students
+  userId    String?
   title     String
+  section String?
   message   String
-  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+  type      String   @default("INFO")
+
+  // Used to decide which student-panel tab gets the red dot
+  category  String   @default("GENERAL")
+
+  // Optional link to the related page
+  link      String?
+
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-  
+
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  @@index([userId, read])
+  @@index([userId, category, read])
+
   @@map("notifications")
 }
 
@@ -324,3 +333,34 @@ model SiteSetting {
   @@map("site_settings")
 }
 
+model Instructor {
+  id              String   @id @default(cuid())
+
+  name            String
+  designation     String?
+  email           String?
+  phone           String?
+  address         String?
+  image           String?
+
+  bio             String?  @db.Text
+  education       String?
+  experience      String?
+  specialization  String?
+
+  skills          String[] @default([])
+  courses         String[] @default([])
+
+  portfolioUrl    String?
+  
+  facebook        String?
+  instagram       String?
+  linkedin        String?
+  youtube         String?
+  github          String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("instructors")
+}

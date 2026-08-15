@@ -1,3 +1,4 @@
+import { createNotification } from "@/lib/notifications";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -51,7 +52,14 @@ export async function POST(req: NextRequest) {
         totalMarks: 0,
       },
     });
-
+if (isPublished) {
+  await createNotification({
+    courseId,
+    title: "New Quiz Available",
+    message: `${quiz.title} has been added to your course.`,
+    type: "INFO",
+  });
+}
     return NextResponse.json({ success: true, quiz });
   } catch (error) {
     console.error("Admin quizzes POST error:", error);

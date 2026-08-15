@@ -202,28 +202,25 @@ export function HeroSection() {
 
             {/* Typewriter */}
 
-            <div className="mt-8 min-h-[40px] text-xl font-semibold text-gray-200 sm:text-2xl">
-
-              <Typewriter
-                words={[
-                  "Software Engineering",
-                  "Artificial Intelligence",
-                  "Web Development",
-                  "Programming",
-                  "English Language",
-                  "Career Development",
-                  "Freelancing",
-                ]}
-                loop={0}
-                cursor
-                cursorStyle="|"
-                typeSpeed={70}
-                deleteSpeed={40}
-                delaySpeed={1800}
-              />
-
-            </div>
-
+            <div className="mt-8 min-h-[40px] text-xl font-semibold text-pink-500 sm:text-2xl">
+  <Typewriter
+    words={[
+      "Software Engineering",
+      "Artificial Intelligence",
+      "Web Development",
+      "Programming",
+      "English Language",
+      "Career Development",
+      "Freelancing",
+    ]}
+    loop={0}
+    cursor
+    cursorStyle="|"
+    typeSpeed={70}
+    deleteSpeed={40}
+    delaySpeed={1800}
+  />
+</div>
             {/* Description */}
 
             <motion.p
@@ -235,7 +232,7 @@ export function HeroSection() {
               }}
               className="mt-7 max-w-xl text-lg leading-8 text-gray-300"
             >
-              Transform your future with industry-focused education.
+              Transform your future with industry focused education.
               Learn modern technologies, Artificial Intelligence,
               programming, English communication and digital skills
               through practical learning and expert guidance.
@@ -296,7 +293,7 @@ export function HeroSection() {
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-yellow-400/40">
                 <h3 className="text-2xl font-black text-yellow-300">
-                  12K+
+                  3K+
                 </h3>
                 <p className="mt-1 text-xs text-gray-400">
                   Students
@@ -305,7 +302,7 @@ export function HeroSection() {
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-400/40">
                 <h3 className="text-2xl font-black text-purple-300">
-                  180+
+                  12+
                 </h3>
                 <p className="mt-1 text-xs text-gray-400">
                   Courses
@@ -314,7 +311,7 @@ export function HeroSection() {
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40">
                 <h3 className="text-2xl font-black text-cyan-300">
-                  40+
+                  3+
                 </h3>
                 <p className="mt-1 text-xs text-gray-400">
                   Countries
@@ -410,7 +407,7 @@ export function HeroSection() {
                       >
 
                         <Image
-                          src="/aziz-rahi.png"
+                          src="/aziz-rahi122.png"
                           alt="Aziz Rahi"
                           fill
                           priority
@@ -472,7 +469,7 @@ export function HeroSection() {
                   </p>
 
                   <p className="mt-2 text-center text-gray-300">
-                    Software Engineer
+                    Software Engineer & English  language Instructor
                   </p>
 
                   {/* Courses / Students */}
@@ -481,7 +478,7 @@ export function HeroSection() {
 
                     <div className="rounded-xl bg-white/10 p-4 text-center backdrop-blur-lg">
                       <h3 className="text-2xl font-bold text-yellow-300">
-                        100+
+                        10+
                       </h3>
 
                       <p className="mt-1 text-gray-300">
@@ -491,7 +488,7 @@ export function HeroSection() {
 
                     <div className="rounded-xl bg-white/10 p-4 text-center backdrop-blur-lg">
                       <h3 className="text-2xl font-bold text-cyan-300">
-                        10000+
+                        2500+
                       </h3>
 
                       <p className="mt-1 text-gray-300">
@@ -511,7 +508,7 @@ export function HeroSection() {
                       </h3>
 
                       <p className="mt-2 text-3xl font-black">
-                        5+
+                        4+
                       </p>
 
                       <p className="text-gray-300">
@@ -525,7 +522,7 @@ export function HeroSection() {
                       </h3>
 
                       <p className="mt-2 text-3xl font-black">
-                        50+
+                        35+
                       </p>
 
                       <p className="text-gray-300">

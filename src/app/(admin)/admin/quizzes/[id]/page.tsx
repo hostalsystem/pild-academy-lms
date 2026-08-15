@@ -155,26 +155,28 @@ export default async function QuizDetailPage({ params }: PageProps) {
                       </div>
                       <p className="font-medium text-gray-900 mb-3">{q.question}</p>
                       <div className="space-y-1.5 ml-8">
-                        {Array.isArray(q.options) &&
-                          q.options.map((opt: string, optIdx: number) => (
-                            <div
-                              key={optIdx}
-                              className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
-                                String(optIdx) === q.correctAnswer
-                                  ? "bg-green-50 text-green-800 border border-green-200"
-                                  : "bg-gray-50 text-gray-600"
-                              }`}
-                            >
-                              <span className="font-medium text-xs w-5">
-                                {String.fromCharCode(65 + optIdx)}.
-                              </span>
-                              <span>{opt}</span>
-                              {String(optIdx) === q.correctAnswer && (
-                                <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
-                              )}
-                            </div>
-                          ))}
-                      </div>
+  {Array.isArray(q.options) &&
+    q.options.map((opt, optIdx) => (
+      <div
+        key={optIdx}
+        className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
+          String(opt) === String(q.correctAnswer)
+            ? "bg-green-50 text-green-800 border border-green-200"
+            : "bg-gray-50 text-gray-600"
+        }`}
+      >
+        <span className="font-medium text-xs w-5">
+          {String.fromCharCode(65 + optIdx)}.
+        </span>
+
+        <span>{String(opt)}</span>
+
+        {String(optIdx) === String(q.correctAnswer) && (
+          <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+        )}
+      </div>
+    ))}
+</div>
                       {q.explanation && (
                         <div className="ml-8 mt-2 bg-blue-50 rounded-lg p-2 text-xs text-blue-800">
                           <span className="font-medium">Explanation:</span> {q.explanation}

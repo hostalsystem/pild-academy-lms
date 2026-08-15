@@ -1,14 +1,20 @@
 ﻿import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { FeaturedCourseGrid } from "./featured-course-grid";
 
 async function getFeaturedCourses() {
+  noStore();
+
   return await prisma.course.findMany({
     where: {
       featured: true,
       published: true,
+    },
+    orderBy: {
+      createdAt: "desc",
     },
     take: 6,
   });

@@ -216,7 +216,7 @@ export default async function StudentDashboard() {
                         </span>
                       </div>
                     </div>
-                    <Link href={`/courses/${enrollment.course.slug}`}>
+                    <Link href={`/my-learning/${enrollment.course.slug}`}>
                       <Button size="sm" variant="outline">
                         {enrollment.status === "APPROVED" ? "Continue" : "View"}
                       </Button>

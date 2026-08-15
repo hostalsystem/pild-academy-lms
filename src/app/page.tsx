@@ -6,13 +6,16 @@ import { FloatingSupport } from "@/components/home/floating-support";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <main>
       <HeroSection />
+
       <FeaturedCourses />
+
       <StatsSection />
+
       <WhyChooseUs />
 
       <FloatingSupport />
-    </div>
+    </main>
   );
 }

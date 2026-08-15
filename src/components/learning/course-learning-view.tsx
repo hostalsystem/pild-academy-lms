@@ -15,7 +15,7 @@ import {
   Clock,
   Download,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -186,11 +186,11 @@ export function CourseLearningView({
               <h1 className="text-2xl font-bold text-gray-900">{activeLesson.title}</h1>
             </div>
 
-            {/* Video Player */}
-            <LessonPlayer lesson={activeLesson} isLocked={false} />
+            Video Player
+            {/* <LessonPlayer lesson={activeLesson} isLocked={false} /> */}
 
             {/* Lesson Actions */}
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={goToPrev} disabled={isFirstLesson}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -206,7 +206,7 @@ export function CourseLearningView({
                 enrollmentId={enrollment.id}
                 isCompleted={activeProgress?.completed || false}
               />
-            </div>
+            </div> */}
 
             {/* Lesson Content */}
             <Card>

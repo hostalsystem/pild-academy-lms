@@ -96,7 +96,7 @@ export function EnrollmentPanel({ course }: EnrollmentPanelProps) {
 
             <ShieldCheck className="h-4 w-4" />
 
-            <span>30-day money-back guarantee</span>
+            <span>Enroll here to start Classes</span>
 
           </div>
 

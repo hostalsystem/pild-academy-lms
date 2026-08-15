@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CourseForm } from "@/components/admin/course-management-form";
 import {
   BookOpen,
   Star,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { CourseForm } from "@/components/admin/course-form";
+// import { CourseForm } from "@/components/admin/course-form";
 
 async function getAdminCourses() {
   return await prisma.course.findMany({
@@ -45,15 +46,19 @@ export default async function AdminCoursesPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
-          <p className="text-gray-500 mt-1">
-            Manage all academy courses.
-          </p>
-        </div>
-        <CourseForm />
-      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-900">
+      Courses
+    </h1>
+
+    <p className="text-gray-500 mt-1">
+      Manage all academy courses.
+    </p>
+  </div>
+
+  <CourseForm />
+</div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -203,13 +208,21 @@ export default async function AdminCoursesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <CourseForm existingCourse={course as any} />
-                      <form
-                        action={async () => {
-                          "use server";
-                          await prisma.course.delete({ where: { id: course.id } });
-                        }}
-                      >
+             <Link
+               href={`/admin/courses/${course.slug}`}
+               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50"
+                    >
+              Manage
+              </Link>
+
+              <form
+             action={async () => {
+              "use server";
+               await prisma.course.delete({
+              where: { id: course.id },
+               });
+              }}
+            >
                         <Button
                           size="sm"
                           variant="ghost"

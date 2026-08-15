@@ -41,15 +41,33 @@ export default async function QuizPage({ params }: PageProps) {
   if (!quiz) notFound();
 
   const latestAttempt = quiz.attempts[0];
-  const isCompleted = latestAttempt && latestAttempt.status !== "IN_PROGRESS";
+const isCompleted =
+  latestAttempt && latestAttempt.status !== "IN_PROGRESS";
 
-  return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <QuizTaker
-        quiz={quiz}
-        initialAttempt={latestAttempt || null}
-        isCompleted={isCompleted}
-      />
-    </div>
-  );
+const quizForTaker = {
+  ...quiz,
+  questions: quiz.questions.map((question) => ({
+    ...question,
+    options: Array.isArray(question.options)
+      ? question.options.map(String)
+      : [],
+  })),
+};
+
+return (
+  <div className="p-6 max-w-3xl mx-auto">
+   <QuizTaker
+  quiz={quizForTaker}
+  initialAttempt={
+    latestAttempt
+      ? {
+          ...latestAttempt,
+          answers: latestAttempt.answers as Record<string, string>,
+        }
+      : null
+  }
+  isCompleted={isCompleted}
+/>
+  </div>
+);
 }

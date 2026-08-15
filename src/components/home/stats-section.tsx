@@ -21,7 +21,7 @@ const stats = [
   {
     icon: BookOpen,
     label: "Total Courses",
-    value: "50+",
+    value: "12+",
     color: "text-blue-400",
     border: "border-blue-500/20",
     hoverBorder: "hover:border-blue-400",
@@ -30,7 +30,7 @@ const stats = [
   {
     icon: Award,
     label: "Certified Graduates",
-    value: "1,200+",
+    value: "600+",
     color: "text-purple-400",
     border: "border-purple-500/20",
     hoverBorder: "hover:border-purple-400",
