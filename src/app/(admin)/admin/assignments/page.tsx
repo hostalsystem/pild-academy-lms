@@ -48,25 +48,26 @@ export default async function AdminAssignmentsPage() {
   const assignments = await getAdminAssignments();
   const courses = await getCourses();
 
-  const total = assignments.length;
+ const total = assignments.length;
 
-const pendingGrading = assignments.reduce(
-  (sum: number, a: (typeof assignments)[number]) =>
-    sum +
-    a.submissions.filter((s) => s.status !== "GRADED").length,
-  0
-);
+const pendingGrading = assignments.reduce((sum, assignment) => {
+  const pending = assignment.submissions.filter(
+    (submission: { status: string }) => submission.status !== "GRADED"
+  ).length;
 
-const graded = assignments.reduce(
-  (sum: number, a: (typeof assignments)[number]) =>
-    sum +
-    a.submissions.filter((s) => s.status === "GRADED").length,
-  0
-);
+  return sum + pending;
+}, 0);
+
+const graded = assignments.reduce((sum, assignment) => {
+  const gradedCount = assignment.submissions.filter(
+    (submission: { status: string }) => submission.status === "GRADED"
+  ).length;
+
+  return sum + gradedCount;
+}, 0);
 
 const totalSubmissions = assignments.reduce(
-  (sum: number, a: (typeof assignments)[number]) =>
-    sum + a._count.submissions,
+  (sum, assignment) => sum + assignment._count.submissions,
   0
 );
   return (
