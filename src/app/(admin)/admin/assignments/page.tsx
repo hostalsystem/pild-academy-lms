@@ -50,7 +50,7 @@ export default async function AdminAssignmentsPage() {
 
   const total = assignments.length;
   const pendingGrading = assignments.reduce(
-    (sum, a) =>
+    (sum: number, a) =>
       sum +
       a.submissions.filter((s) => s.status !== "GRADED").length,
     0
