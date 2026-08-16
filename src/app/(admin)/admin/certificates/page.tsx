@@ -174,7 +174,7 @@ export default async function AdminCertificatesPage() {
             </Badge>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pending.map((enrollment) => (
+            {pending.map((enrollment: PendingEnrollment) => (
               <Card key={enrollment.id} className="overflow-hidden border-yellow-200">
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row">
