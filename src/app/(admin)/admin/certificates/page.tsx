@@ -244,7 +244,7 @@ export default async function AdminCertificatesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {certificates.map((cert) => (
+                  {certificates.map((cert: Certificate) => (
                     <tr
                       key={cert.id}
                       className="border-b last:border-0 hover:bg-gray-50/50 transition-colors"
