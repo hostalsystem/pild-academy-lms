@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,11 +23,32 @@ import { IssueCertificate } from "@/components/admin/issue-certificate";
 async function getCertificates() {
   return await prisma.certificate.findMany({
     include: {
-      user: { select: { id: true, name: true, email: true, image: true } },
-      course: { select: { id: true, title: true, thumbnail: true, duration: true } },
-      enrollment: { select: { id: true, completedAt: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      course: {
+        select: {
+          id: true,
+          title: true,
+          thumbnail: true,
+          duration: true,
+        },
+      },
+      enrollment: {
+        select: {
+          id: true,
+          completedAt: true,
+        },
+      },
     },
-    orderBy: { issuedAt: "desc" },
+    orderBy: {
+      issuedAt: "desc",
+    },
   });
 }
 
@@ -37,13 +59,33 @@ async function getPending() {
       certificate: null,
     },
     include: {
-      user: { select: { id: true, name: true, email: true, image: true } },
-      course: { select: { id: true, title: true, thumbnail: true, duration: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      course: {
+        select: {
+          id: true,
+          title: true,
+          thumbnail: true,
+          duration: true,
+        },
+      },
     },
-    orderBy: { completedAt: "desc" },
+    orderBy: {
+      completedAt: "desc",
+    },
   });
 }
+type Certificates = Awaited<ReturnType<typeof getCertificates>>;
+type Certificate = Certificates[number];
 
+type PendingEnrollments = Awaited<ReturnType<typeof getPending>>;
+type PendingEnrollment = PendingEnrollments[number];
 export default async function AdminCertificatesPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || session.user.role !== "ADMIN") {
@@ -95,7 +137,7 @@ export default async function AdminCertificatesPage() {
               <p className="text-xs text-gray-500">Students</p>
               <p className="text-2xl font-bold text-blue-600">
                 {new Set(
-  certificates.map((c: { userId: string }) => c.userId)
+  certificates.map((c: Certificate) => c.userId)
 ).size}
               </p>
             </div>
@@ -110,7 +152,7 @@ export default async function AdminCertificatesPage() {
               <p className="text-xs text-gray-500">Courses</p>
               <p className="text-2xl font-bold text-purple-600">
                 {new Set(
-  certificates.map((c: { courseId: string }) => c.courseId)
+  certificates.map((c: Certificate) => c.courseId)
 ).size}
               </p>
             </div>
