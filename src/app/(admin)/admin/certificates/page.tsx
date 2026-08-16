@@ -94,7 +94,9 @@ export default async function AdminCertificatesPage() {
             <div>
               <p className="text-xs text-gray-500">Students</p>
               <p className="text-2xl font-bold text-blue-600">
-                {new Set(certificates.map((c) => c.userId)).size}
+                {new Set(
+  certificates.map((c: { userId: string }) => c.userId)
+).size}
               </p>
             </div>
             <div className="bg-blue-50 p-3 rounded-lg">
@@ -107,7 +109,9 @@ export default async function AdminCertificatesPage() {
             <div>
               <p className="text-xs text-gray-500">Courses</p>
               <p className="text-2xl font-bold text-purple-600">
-                {new Set(certificates.map((c) => c.courseId)).size}
+                {new Set(
+  certificates.map((c: { courseId: string }) => c.courseId)
+).size}
               </p>
             </div>
             <div className="bg-purple-50 p-3 rounded-lg">
