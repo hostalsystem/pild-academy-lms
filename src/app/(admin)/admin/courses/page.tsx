@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { Course } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,14 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 // import { CourseForm } from "@/components/admin/course-form";
 
-async function getAdminCourses(): Promise<
-  (Course & {
-    _count: {
-      enrollments: number;
-      lessons: number;
-    };
-  })[]
-> {
+async function getAdminCourses() {
   return await prisma.course.findMany({
     include: {
       _count: {
